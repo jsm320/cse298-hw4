@@ -49,49 +49,87 @@ end
 % This is just here for demonstration purposes showing how the robots will
 % move.  You will need to comment out this loop, and comment in the while
 % loop below where you will add the EKF code.  
-for i=1:50
-    robot = move_robot( robot, robot.x+cos(robot.theta), robot.y+sin(robot.theta), robot.theta+0.05*randn );
-    robot_hat = move_robot( robot_hat, robot_hat.x+cos(robot_hat.theta), robot_hat.y+sin(robot_hat.theta), robot_hat.theta+0.05*randn );
-    pause(0.5);
-end
+%for i=1:50
+ %   robot = move_robot( robot, robot.x+cos(robot.theta), robot.y+sin(robot.theta), robot.theta+0.05*randn );
+  %  robot_hat = move_robot( robot_hat, robot_hat.x+cos(robot_hat.theta), robot_hat.y+sin(robot_hat.theta), robot_hat.theta+0.05*randn );
+   % pause(0.5);
+%end
 
 
 % %******************************************
 % % ADD OTHER CODE HERE
 % %******************************************
-% current_leg=1;
-% while current_leg~=9
+
+
+current_leg=1;
+ while current_leg~=9
+     if (current_leg == 1)
+         robot = move_robot( robot, 105, 15, 0 );
+         robot_hat = move_robot( robot_hat, 105, 15, 0 );
+     end
+     if (current_leg == 2)
+         robot = move_robot( robot, 105, 15, pi/2 );
+         robot_hat = move_robot( robot_hat, 105, 15, pi/2 );
+     end
+     if (current_leg == 3)
+         robot = move_robot( robot, 105, 65, pi/2 );
+         robot_hat = move_robot( robot_hat, 105, 65, pi/2 );
+     end
+     if (current_leg == 4)
+         robot = move_robot( robot, 105, 65, pi );
+         robot_hat = move_robot( robot_hat, 105, 65, pi );
+     end
+     if (current_leg == 5)
+         robot = move_robot( robot, 15, 65, pi );
+         robot_hat = move_robot( robot_hat, 15, 65, pi );
+     end
+     if (current_leg == 6)
+         robot = move_robot( robot, 15, 65, 3*pi/2 );
+         robot_hat = move_robot( robot_hat, 15, 65, 3*pi/2 );
+     end
+     if (current_leg == 7)
+         robot = move_robot( robot, 15, 15, 3*pi/2 );
+         robot_hat = move_robot( robot_hat, 15, 15, 3*pi/2 );
+     end
+     if (current_leg == 8)
+         robot = move_robot( robot, 15, 15, 0 );
+         robot_hat = move_robot( robot_hat, 15, 15, 0 );
+     end     
+     ekf = extendedKalmanFilter(robot_hat, MeasurementFcn ,P);
+     ekf.run();
 %     % Measurement Update Phase
-%     for i=1:num_cameras
-%         % Each camera is tested to see if it can be seen by the robot.  
-%         % Visible cameras are set to green, and a line reflecting its
-%         % measured position as estimated by the robot is also plotted.  
-%         [ camera(i), bearing ] = test_camera( camera(i), robot );        
-%         if ~isempty( bearing )
-%             [ robot_hat, P ] = MeasurementUpdate( robot_hat, P, camera(i), bearing );
-% 
-% %******************************************
-% % ADD OTHER CODE HERE
-% %******************************************
-% 
-%         end
-%     end
+     for i=1:num_cameras
+         % Each camera is tested to see if it can be seen by the robot.  
+         % Visible cameras are set to green, and a line reflecting its
+         % measured position as estimated by the robot is also plotted.  
+         [ camera(i), bearing ] = test_camera( camera(i), robot );        
+         if ~isempty( bearing )
+             [ robot_hat, P ] = MeasurementUpdate( robot_hat, P, camera(i), bearing );
+
+             
+         end
+     end
 % 
 %     % Time Update Phase.  Note we do multiple time updates for each
 %     % measurement update because the update rate of the odometry is higher
-%     for j=1:1/DT_ODOM
-%         [ robot, robot_hat, P ] = TimeUpdate( robot, robot_hat, P, legV, legOmega );        
-% %******************************************
-% % ADD OTHER CODE HERE
-% %******************************************
-%     end
+     for j=1:1/DT_ODOM
+         [ robot, robot_hat, P ] = TimeUpdate( robot, robot_hat, P, legV, legOmega );
+         h = plot_cov( mu, P );
+     end
 % 
-% end
+end
+function h = plot_cov( mu, P )
+
+e = eig(P);
+
+ellipse = pdellip(mu, P, 0);
+plot ellipse;
 
 %==================================================================================
 function [ robot, robot_hat, P ] = TimeUpdate( robot, robot_hat, P, v, omega )
 %==================================================================================
 global DT_ODOM WHEELBASE SIGMA_WHEEL;
+robot_hat = make_robot( x, y, bearing, 'size', 1.5, 'color', 'r', 'make_trail', 1 );
 %******************************************
 % ADD OTHER CODE HERE
 %******************************************
@@ -102,7 +140,8 @@ function [ robotHat, P ] = MeasurementUpdate( robot_hat, P, camera, range )
 %==================================================================================
 global SIGMA_BEARING;
 %******************************************
-% ADD OTHER CODE HERE
+
+bearing = atan2( robot.y-camera.y, robot.x-camera.x );
+plot ellipse;
+
 %******************************************
-
-
